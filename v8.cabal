@@ -1,0 +1,40 @@
+name:               v8
+version:            0.0.0
+license:            MIT
+license-file:       LICENSE
+copyright:          (c) 2012 Simon Hengel
+author:             Simon Hengel <sol@typeful.net>
+maintainer:         Simon Hengel <sol@typeful.net>
+build-type:         Simple
+cabal-version:      >= 1.10
+stability:          experimental
+synopsis:           Haskell bindings to Google's V8 JavaScript Engine
+
+source-repository head
+  type: git
+  location: https://github.com/sol/v8
+
+library
+  default-language: Haskell2010
+  ghc-options:      -Wall
+
+  cc-options:       -std=c++0x
+  ld-options:       -Llib
+  extra-libraries:  stdc++ v8_base v8_snapshot
+  include-dirs:     include
+  c-sources:        cbits/js.cpp
+
+  build-depends:    base
+  hs-source-dirs:   src
+  exposed-modules:  Foreign.JavaScript.V8
+
+test-suite spec
+  default-language: Haskell2010
+  type:             exitcode-stdio-1.0
+  ghc-options:      -Wall
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  build-depends:    base
+                  , v8
+                  , hspec >= 1.3
+                  , silently
