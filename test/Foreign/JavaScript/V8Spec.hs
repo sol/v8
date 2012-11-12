@@ -24,24 +24,48 @@ escapeString s = go s ""
       '\''   -> showString "\\'"
       _      -> showChar c
 
+-- | Create a new `Context` and run a script.
+runScript_ :: String -> IO ()
+runScript_ input = withHandleScope $ do
+  withContext_ (runScript input >> pure ())
+
 spec :: Spec
 spec = do
+  describe "toString" $ do
+    it "can convert undefined to string" $ withHandleScope . withContext_ $ do
+      (mkUndefined >>= toString) `shouldReturn` "undefined"
+
+  describe "runScript" $ do
+    it "can return a number" $ withHandleScope . withContext_ $ do
+      (runScript "23" >>= toString) `shouldReturn` "23"
+
+    it "can return a string" $ withHandleScope . withContext_ $ do
+      (runScript "'foo'" >>= toString) `shouldReturn` "foo"
+
+    it "can return undefined" $ withHandleScope . withContext_ $ do
+      (runScript "undefined" >>= toString) `shouldReturn` "undefined"
+
+    it "can create global variables" $ withHandleScope . withContext_ $ do
+      (runScript "var foo = 'bar';" >>= toString) `shouldReturn` "undefined"
+      (runScript "foo" >>= toString) `shouldReturn` "bar"
+
   describe "global built-ins" $ do
     describe "print" $ do
       it "can print a number" $ do
-        capture_ (runScript "print(23)") `shouldReturn` "23\n"
+        capture_ (runScript_ "print(23)") `shouldReturn` "23\n"
 
       it "can print a string" $ do
-        capture_ (runScript "print('foo')") `shouldReturn` "foo\n"
+        capture_ (runScript_ "print('foo')") `shouldReturn` "foo\n"
 
       it "can print a string that contains NUL characters" $ do
-        capture_ (runScript "print('foo-\\u0000-bar')") `shouldReturn` "foo-\NUL-bar\n"
+        capture_ (runScript_ "print('foo-\\u0000-bar')") `shouldReturn` "foo-\NUL-bar\n"
 
       it "works for arbitrary strings" $ \str -> do
-        capture_ (runScript $ "print('" ++ escapeString str ++ "')") `shouldReturn` str ++ "\n"
+        capture_ (runScript_ $ "print('" ++ escapeString str ++ "')") `shouldReturn` str ++ "\n"
 
-      it "can print `undefined`" $ do
-        capture_ (runScript "print(undefined)") `shouldReturn` "undefined\n"
+      it "can print undefined" $ do
+        capture_ (runScript_ "print(undefined)") `shouldReturn` "undefined\n"
 
-      it "prints `undefined` if called without arguments" $ do
-        capture_ (runScript "print()") `shouldReturn` "undefined\n"
+      it "prints undefined if called without arguments" $ do
+        capture_ (runScript_ "print()") `shouldReturn` "undefined\n"
+
