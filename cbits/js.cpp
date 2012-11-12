@@ -1,17 +1,30 @@
 #include <v8.h>
+#include <string.h>
 
 using namespace v8;
 
-static_assert(sizeof(Handle<Value>) == 8,
-    "We treat Handle<Value> as a 64-bit value, but your compiler thinks it "
-    "has a different size.  You can request support for your platform by "
-    "opening a ticket at https://github.com/sol/v8/issues."
-    );
+static_assert(sizeof(Handle<Value>) == sizeof(void*),
+  "We treat Handle<Value> "
+  "as a pointer, but your compiler thinks it has a different size.  You can "
+  "request support for your platform by opening a ticket at "
+  "https://github.com/sol/v8/issues."
+  );
+
+static_assert(sizeof(Local<String>) == sizeof(void*),
+  "We treat Local<String>"
+  "as a pointer, but your compiler thinks it has a different size.  You can "
+  "request support for your platform by opening a ticket at "
+  "https://github.com/sol/v8/issues."
+  );
 
 extern "C" {
 
 Handle<Value> mkUndefined() {
   return Undefined();
+}
+
+Handle<Value> argumentsGet(int i, const Arguments& args) {
+  return args[i];
 }
 
 void runScript(const InvocationCallback jsPrint, const char* input) {
@@ -36,4 +49,18 @@ void runScript(const InvocationCallback jsPrint, const char* input) {
   // Dispose the persistent context.
   context.Dispose();
 }
+
+Local<String> toString(Handle<Value> value) {
+  return value->ToString();
+}
+
+int stringUtf8Length(Handle<String> value) {
+  return value->Utf8Length();
+}
+
+void getStringValue(Handle<String> value, char* dst) {
+  String::Utf8Value src(value);
+  memcpy(dst, *src, src.length());
+}
+
 }
