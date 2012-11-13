@@ -22,8 +22,8 @@ Handle<Value> mkUndefined() {
   return Undefined();
 }
 
-Local<Value> c_mkString(const char* str) {
-  return String::New(str);
+Local<Value> c_mkString(const char* str, int n) {
+  return String::New(str, n);
 }
 
 Local<String> valueToString(Handle<Value> value) {

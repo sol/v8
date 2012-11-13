@@ -23,7 +23,6 @@ module Foreign.JavaScript.V8 (
 
 import           Control.Exception (bracket, bracket_)
 import           Foreign
-import           Foreign.C (CString, CInt(..))
 
 import           Util
 import           Foreign.JavaScript.V8.Value
