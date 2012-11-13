@@ -48,6 +48,9 @@ spec = do
     it "can return undefined" $ withHandleScope . withContext_ $ do
       (runScript "undefined" >>= toString) `shouldReturn` "undefined"
 
+    it "can do basic math" $ withHandleScope . withContext_ $ do
+      (runScript "1 + 2" >>= toString) `shouldReturn` "3"
+
     it "can create global variables" $ withHandleScope . withContext_ $ do
       (runScript "var foo = 'bar';" >>= toString) `shouldReturn` "undefined"
       (runScript "foo" >>= toString) `shouldReturn` "bar"
