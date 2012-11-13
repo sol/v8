@@ -22,12 +22,17 @@ library
   ld-options:       -Llib
   extra-libraries:  stdc++ v8_base v8_snapshot
   include-dirs:     include
-  c-sources:        cbits/js.cpp
+  c-sources:
+    cbits/js.cpp
+    cbits/value.cpp
 
   build-depends:    base
   hs-source-dirs:   src
   exposed-modules:  Foreign.JavaScript.V8
                     Language.JavaScript.V8
+  other-modules:
+    Util
+    Foreign.JavaScript.V8.Value
 
 test-suite spec
   default-language: Haskell2010

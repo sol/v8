@@ -34,10 +34,6 @@ runScript_ input = withHandleScope $ do
 
 spec :: Spec
 spec = do
-  describe "toString" $ do
-    it "can convert undefined to string" $ withHandleScope . withContext_ $ do
-      (mkUndefined >>= toString) `shouldReturn` "undefined"
-
   describe "runScript" $ do
     it "can return a number" $ withHandleScope . withContext_ $ do
       (runScript "23" >>= toString) `shouldReturn` "23"
