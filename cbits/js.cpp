@@ -30,12 +30,15 @@ Handle<Value> mkUndefined() {
   return Undefined();
 }
 
+Local<Value> c_mkString(const char* str) {
+  return String::New(str);
+}
+
 Handle<Value> argumentsGet(int i, const Arguments& args) {
   return args[i];
 }
 
 typedef void (*ActionCallback)(void);
-
 void c_withHandleScope(ActionCallback action) {
   HandleScope scope;
   action();
@@ -43,10 +46,8 @@ void c_withHandleScope(ActionCallback action) {
 
 Persistent<Context> contextNew(const InvocationCallback jsPrint) {
   HandleScope scope;
-
   Local<ObjectTemplate> global = ObjectTemplate::New();
   global->Set(String::New("print"), FunctionTemplate::New(jsPrint));
-
   return Context::New(NULL, global);
 }
 
@@ -60,6 +61,12 @@ void contextEnter(Handle<Context> context) {
 
 void contextExit(Handle<Context> context) {
   context->Exit();
+}
+
+void c_contextAddFunction(Handle<Context> context, char* name, const InvocationCallback f) {
+  HandleScope scope;
+  Local<Function> fun = FunctionTemplate::New(f)->GetFunction();
+  context->Global()->Set(String::New(name), fun);
 }
 
 Local<Value> c_runScript(const char* input) {

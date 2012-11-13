@@ -7,13 +7,18 @@ module Foreign.JavaScript.V8 (
 , withContext
 , withContext_
 
+, contextAddFunction
+
 , contextEnter
 , contextExit
 
 , Arguments (..)
+, argumentsGet
+
 , Value (..)
 , toString
 , mkUndefined
+, mkString
 ) where
 
 import           Control.Applicative
@@ -43,7 +48,7 @@ foreign import ccall c_withHandleScope :: ActionCallback -> IO ()
 
 withHandleScope :: IO a -> IO a
 withHandleScope action = do
-  ref <- newIORef undefined
+  ref <- newIORef (error "withHandleScope: empty IORef")
   bracket
     (mkActionCallback $ try action >>= writeIORef ref)
     freeHaskellFunPtr
@@ -79,7 +84,11 @@ foreign import ccall c_runScript :: CString -> IO Value
 
 newtype Value = Value (Ptr ())
 
-foreign import ccall "mkUndefined" mkUndefined :: IO Value
+foreign import ccall mkUndefined :: IO Value
+
+mkString :: String -> IO Value
+mkString str = withCString str c_mkString
+foreign import ccall c_mkString :: CString -> IO Value
 
 newtype Arguments = Arguments (Ptr ())
 
@@ -100,3 +109,14 @@ toString value = withHandleScope $ do
 foreign import ccall valueToString :: Value -> IO StringValue
 foreign import ccall stringUtf8Length :: StringValue -> IO CInt
 foreign import ccall stringUtf8Value :: StringValue -> CString -> IO ()
+
+-- |
+-- This returns a finalizer.  It should be called after the given context has
+-- been disposed to reclaim memory.
+contextAddFunction :: Context -> String -> (Arguments -> IO Value) -> IO (IO ())
+contextAddFunction context name f = do
+  ptr <- mkInvocationCallback f
+  withCString name $ \name_ -> c_contextAddFunction context name_ ptr
+  return (freeHaskellFunPtr ptr)
+
+foreign import ccall c_contextAddFunction :: Context -> CString -> InvocationCallback -> IO ()
