@@ -3,7 +3,7 @@ module Foreign.JavaScript.V8 (
   withHandleScope
 , runScript
 
-, Context (..)
+, Context
 , withContext
 , withContext_
 
@@ -12,7 +12,7 @@ module Foreign.JavaScript.V8 (
 , contextEnter
 , contextExit
 
-, Arguments (..)
+, Arguments
 , argumentsGet
 
 , Value
@@ -26,13 +26,7 @@ import           Foreign
 
 import           Util
 import           Foreign.JavaScript.V8.Value
-
-newtype Context = Context (Ptr ())
-foreign import ccall contextNew :: InvocationCallback -> IO Context
-foreign import ccall contextDispose :: Context -> IO ()
-
-foreign import ccall contextEnter :: Context -> IO ()
-foreign import ccall contextExit :: Context -> IO ()
+import           Foreign.JavaScript.V8.Context
 
 -- | Create a new `Context` and run given action within that context.
 withContext :: (Context -> IO a) -> IO a
@@ -57,22 +51,3 @@ withContext_ action = withContext $ \_ -> action
 runScript :: String -> IO Value
 runScript input = withCString input c_runScript
 foreign import ccall c_runScript :: CString -> IO Value
-
-
-newtype Arguments = Arguments (Ptr ())
-
-type InvocationCallback = FunPtr (Arguments -> IO Value)
-foreign import ccall "wrapper" mkInvocationCallback :: (Arguments -> IO Value) -> IO InvocationCallback
-
-foreign import ccall "argumentsGet" argumentsGet :: CInt -> Arguments -> IO Value
-
--- |
--- This returns a finalizer.  It should be called after the given context has
--- been disposed to reclaim memory.
-contextAddFunction :: Context -> String -> (Arguments -> IO Value) -> IO (IO ())
-contextAddFunction context name f = do
-  ptr <- mkInvocationCallback f
-  withCString name $ \name_ -> c_contextAddFunction context name_ ptr
-  return (freeHaskellFunPtr ptr)
-
-foreign import ccall c_contextAddFunction :: Context -> CString -> InvocationCallback -> IO ()
