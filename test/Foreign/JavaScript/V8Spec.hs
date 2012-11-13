@@ -3,6 +3,8 @@ module Foreign.JavaScript.V8Spec (main, spec) where
 import           Test.Hspec.Experimental
 import           System.IO.Silently
 
+import           Control.Applicative
+
 import           Foreign.JavaScript.V8
 
 main :: IO ()
