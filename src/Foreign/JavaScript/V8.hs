@@ -18,7 +18,7 @@ module Foreign.JavaScript.V8 (
 ) where
 
 import           Control.Applicative
-import           Control.Exception (bracket)
+import           Control.Exception (SomeException, bracket, try, throwIO)
 import           Data.IORef
 import           Foreign
 import           Foreign.C (CString, CStringLen, CInt(..))
@@ -47,10 +47,13 @@ withHandleScope :: IO a -> IO a
 withHandleScope action = do
   ref <- newIORef undefined
   bracket
-    (mkActionCallback (action >>= writeIORef ref))
+    (mkActionCallback $ try action >>= writeIORef ref)
     freeHaskellFunPtr
     c_withHandleScope
-  readIORef ref
+  readIORef ref >>= liftE
+  where
+    liftE :: Either SomeException a -> IO a
+    liftE = either throwIO return
 
 -- | Create a new `Context` and run given action within that context.
 withContext :: (Context -> IO a) -> IO a
