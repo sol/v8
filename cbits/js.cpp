@@ -54,12 +54,12 @@ void contextDispose(Persistent<Context> context) {
   context.Dispose();
 }
 
-Context::Scope* enterContext(Handle<Context> context) {
-  return new Context::Scope(context);
+void contextEnter(Handle<Context> context) {
+  context->Enter();
 }
 
-void leaveContext(Context::Scope* scope) {
-  delete scope;
+void contextExit(Handle<Context> context) {
+  context->Exit();
 }
 
 Local<Value> c_runScript(const char* input) {

@@ -7,9 +7,8 @@ module Foreign.JavaScript.V8 (
 , withContext
 , withContext_
 
-, ContextScope (..)
-, enterContext
-, leaveContext
+, contextEnter
+, contextExit
 
 , Arguments (..)
 , Value (..)
@@ -18,7 +17,7 @@ module Foreign.JavaScript.V8 (
 ) where
 
 import           Control.Applicative
-import           Control.Exception (SomeException, bracket, try, throwIO)
+import           Control.Exception (SomeException, bracket, bracket_, try, throwIO)
 import           Data.IORef
 import           Foreign
 import           Foreign.C (CString, CStringLen, CInt(..))
@@ -35,9 +34,8 @@ newtype Context = Context (Ptr ())
 foreign import ccall contextNew :: InvocationCallback -> IO Context
 foreign import ccall contextDispose :: Context -> IO ()
 
-newtype ContextScope = ContextScope (Ptr ())
-foreign import ccall enterContext :: Context -> IO ContextScope
-foreign import ccall leaveContext :: ContextScope -> IO ()
+foreign import ccall contextEnter :: Context -> IO ()
+foreign import ccall contextExit :: Context -> IO ()
 
 type ActionCallback = FunPtr (IO ())
 foreign import ccall "wrapper" mkActionCallback :: IO () -> IO ActionCallback
@@ -60,7 +58,7 @@ withContext :: (Context -> IO a) -> IO a
 withContext action = do
   bracket (mkInvocationCallback jsPrint) freeHaskellFunPtr $ \ptr -> do
     bracket (contextNew ptr) contextDispose $ \context -> do
-      bracket (enterContext context) leaveContext $ \_ -> do
+      bracket_ (contextEnter context) (contextExit context) $ do
         action context
   where
     jsPrint :: Arguments -> IO Value
