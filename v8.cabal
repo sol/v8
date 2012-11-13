@@ -27,6 +27,7 @@ library
   build-depends:    base
   hs-source-dirs:   src
   exposed-modules:  Foreign.JavaScript.V8
+                    Language.JavaScript.V8
 
 test-suite spec
   default-language: Haskell2010
