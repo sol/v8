@@ -50,3 +50,6 @@ test-suite spec
                   , hspec
                   , hspec-experimental
                   , silently
+                  , stringbuilder
+                  , transformers
+                  , containers
