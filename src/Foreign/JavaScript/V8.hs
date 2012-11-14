@@ -24,6 +24,8 @@ module Foreign.JavaScript.V8 (
 , toString
 , mkUndefined
 , mkString
+
+, module Foreign.JavaScript.V8.Finalizer
 ) where
 
 import           Control.Exception (bracket, bracket_)
@@ -31,16 +33,17 @@ import           Control.Exception (bracket, bracket_)
 import           Util
 import           Foreign.JavaScript.V8.Value
 import           Foreign.JavaScript.V8.Context
+import           Foreign.JavaScript.V8.Finalizer
 
 -- | Create a new `Context` and run given action within that context.
 withContext :: (Context -> IO a) -> IO a
 withContext action = do
   t <- mkObjectTemplate
-  fin <- objectTemplateAddFunction t "print" jsPrint
+  objectTemplateAddFunction t "print" jsPrint
   r <- bracket (contextNew t) contextDispose $ \context -> do
     bracket_ (contextEnter context) (contextExit context) $ do
       action context
-  fin
+  dispose t
   return r
   where
     jsPrint :: Arguments -> IO Value

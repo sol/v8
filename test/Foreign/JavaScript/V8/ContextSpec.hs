@@ -15,13 +15,13 @@ spec = do
     it "takes a template for the global object" $ do
       withHandleScope $ do
         t <- mkObjectTemplate
-        fin1 <- objectTemplateAddFunction t "reverse" jsReverse
-        fin2 <- objectTemplateAddFunction t "concat"  jsConcat
+        objectTemplateAddFunction t "reverse" jsReverse
+        objectTemplateAddFunction t "concat"  jsConcat
         bracket (contextNew t) contextDispose $ \c -> do
           bracket_ (contextEnter c) (contextExit c) $ do
             (runScript "reverse('foo')" >>= toString) `shouldReturn` "oof"
             (runScript "concat('foo', 'bar')" >>= toString) `shouldReturn` "foobar"
-        fin1 >> fin2
+        dispose t
   where
     jsReverse args = do
       s <- argumentsGet 0 args >>= toString

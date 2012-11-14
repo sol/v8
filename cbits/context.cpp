@@ -22,7 +22,7 @@ Handle<Value> argumentsGet(int i, const Arguments& args) {
   return args[i];
 }
 
-Local<ObjectTemplate> mkObjectTemplate() {
+Local<ObjectTemplate> c_mkObjectTemplate() {
   return ObjectTemplate::New();
 }
 
@@ -31,7 +31,7 @@ void c_objectTemplateAddFunction(Handle<ObjectTemplate> t, const char* name, Inv
   t->Set(name, FunctionTemplate::New(f));
 }
 
-Persistent<Context> contextNew(Handle<ObjectTemplate> global) {
+Persistent<Context> c_contextNew(Handle<ObjectTemplate> global) {
   return Context::New(NULL, global);
 }
 
