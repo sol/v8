@@ -1,9 +1,9 @@
-module Foreign.JavaScript.V8.FinalizerSpec (main, spec) where
+module Foreign.JavaScript.V8.DisposableSpec (main, spec) where
 
 import           Test.Hspec
 import           System.IO.Silently
 
-import           Foreign.JavaScript.V8.Finalizer
+import           Foreign.JavaScript.V8.Disposable
 
 main :: IO ()
 main = hspec spec

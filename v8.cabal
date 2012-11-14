@@ -33,7 +33,7 @@ library
     Foreign.JavaScript.V8
     Language.JavaScript.V8
 
-    Foreign.JavaScript.V8.Finalizer
+    Foreign.JavaScript.V8.Disposable
   other-modules:
     Util
     Foreign.JavaScript.V8.Value

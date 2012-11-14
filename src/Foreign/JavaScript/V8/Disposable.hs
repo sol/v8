@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-module Foreign.JavaScript.V8.Finalizer (
+module Foreign.JavaScript.V8.Disposable (
   Disposable (..)
 , AlreadyDisposed (..)
 , Finalizer

@@ -24,7 +24,7 @@ module Foreign.JavaScript.V8 (
 , mkUndefined
 , mkString
 
-, module Foreign.JavaScript.V8.Finalizer
+, module Foreign.JavaScript.V8.Disposable
 ) where
 
 import           Control.Exception (bracket, bracket_)
@@ -32,7 +32,7 @@ import           Control.Exception (bracket, bracket_)
 import           Util
 import           Foreign.JavaScript.V8.Value
 import           Foreign.JavaScript.V8.Context
-import           Foreign.JavaScript.V8.Finalizer
+import           Foreign.JavaScript.V8.Disposable
 
 -- | Create a new `Context` and run given action within that context.
 withContext :: (Context -> IO a) -> IO a

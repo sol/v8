@@ -19,7 +19,7 @@ import           Foreign
 
 import           Util
 import           Foreign.JavaScript.V8.Value
-import           Foreign.JavaScript.V8.Finalizer
+import           Foreign.JavaScript.V8.Disposable
 
 data ContextToken
 data Context = Context (Ptr ContextToken) Finalizer
