@@ -13,6 +13,7 @@ module Foreign.JavaScript.V8 (
 
 , contextAddFunction
 
+, withContextScope
 , contextEnter
 , contextExit
 
@@ -34,13 +35,17 @@ import           Foreign.JavaScript.V8.Value
 import           Foreign.JavaScript.V8.Context
 import           Foreign.JavaScript.V8.Disposable
 
+-- | Enter context, run given action, exit context.
+withContextScope :: Context -> IO a -> IO a
+withContextScope c = bracket_ (contextEnter c) (contextExit c)
+
 -- | Create a new `Context` and run given action within that context.
 withContext :: (Context -> IO a) -> IO a
 withContext action = do
   t <- mkObjectTemplate
   objectTemplateAddFunction t "print" jsPrint
   bracket (contextNew t) dispose $ \c -> do
-    bracket_ (contextEnter c) (contextExit c) $ do
+    withContextScope c $ do
       action c
   where
     jsPrint :: Arguments -> IO Value

@@ -2,7 +2,7 @@ module Foreign.JavaScript.V8.ContextSpec (main, spec) where
 
 import           Test.Hspec
 
-import           Control.Exception (bracket, bracket_)
+import           Control.Exception (bracket)
 
 import           Foreign.JavaScript.V8
 
@@ -19,7 +19,7 @@ spec = do
           objectTemplateAddFunction t "reverse" jsReverse
           objectTemplateAddFunction t "concat"  jsConcat
           bracket (contextNew t) dispose $ \c -> do
-            bracket_ (contextEnter c) (contextExit c) $ do
+            withContextScope c $ do
               (runScript "reverse('foo')" >>= toString) `shouldReturn` "oof"
               (runScript "concat('foo', 'bar')" >>= toString) `shouldReturn` "foobar"
 
