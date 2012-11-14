@@ -5,11 +5,12 @@ module Foreign.JavaScript.V8.Context (
 , contextEnter
 , contextExit
 
+, ObjectTemplate (..)
+, mkObjectTemplate
+, objectTemplateAddFunction
+
 , Arguments (..)
 , argumentsGet
-
-, InvocationCallback
-, mkInvocationCallback
 
 , contextAddFunction
 ) where
@@ -28,7 +29,7 @@ foreign import ccall "wrapper" mkInvocationCallback :: (Arguments -> IO Value) -
 
 foreign import ccall "argumentsGet" argumentsGet :: CInt -> Arguments -> IO Value
 
-foreign import ccall contextNew :: InvocationCallback -> IO Context
+foreign import ccall contextNew :: ObjectTemplate -> IO Context
 foreign import ccall contextDispose :: Context -> IO ()
 
 foreign import ccall contextEnter :: Context -> IO ()
@@ -43,3 +44,14 @@ contextAddFunction context name f = do
   withCString name $ \name_ -> c_contextAddFunction context name_ ptr
   return (freeHaskellFunPtr ptr)
 foreign import ccall c_contextAddFunction :: Context -> CString -> InvocationCallback -> IO ()
+
+newtype ObjectTemplate = ObjectTemplate (Ptr ())
+foreign import ccall mkObjectTemplate :: IO ObjectTemplate
+
+objectTemplateAddFunction :: ObjectTemplate -> String -> (Arguments -> IO Value) -> IO (IO ())
+objectTemplateAddFunction t name f = do
+  ptr <- mkInvocationCallback f
+  withCString name $ \name_ -> c_objectTemplateAddFunction t name_ ptr
+  return (freeHaskellFunPtr ptr)
+
+foreign import ccall c_objectTemplateAddFunction :: ObjectTemplate -> CString -> InvocationCallback -> IO ()

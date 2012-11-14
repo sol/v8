@@ -4,8 +4,13 @@ module Foreign.JavaScript.V8 (
 , runScript
 
 , Context
+, contextNew
+, contextDispose
 , withContext
 , withContext_
+
+, mkObjectTemplate
+, objectTemplateAddFunction
 
 , contextAddFunction
 
@@ -22,7 +27,6 @@ module Foreign.JavaScript.V8 (
 ) where
 
 import           Control.Exception (bracket, bracket_)
-import           Foreign
 
 import           Util
 import           Foreign.JavaScript.V8.Value
@@ -31,10 +35,13 @@ import           Foreign.JavaScript.V8.Context
 -- | Create a new `Context` and run given action within that context.
 withContext :: (Context -> IO a) -> IO a
 withContext action = do
-  bracket (mkInvocationCallback jsPrint) freeHaskellFunPtr $ \ptr -> do
-    bracket (contextNew ptr) contextDispose $ \context -> do
-      bracket_ (contextEnter context) (contextExit context) $ do
-        action context
+  t <- mkObjectTemplate
+  fin <- objectTemplateAddFunction t "print" jsPrint
+  r <- bracket (contextNew t) contextDispose $ \context -> do
+    bracket_ (contextEnter context) (contextExit context) $ do
+      action context
+  fin
+  return r
   where
     jsPrint :: Arguments -> IO Value
     jsPrint args = do

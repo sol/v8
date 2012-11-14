@@ -9,16 +9,29 @@ static_assert(sizeof(Persistent<Context>) == sizeof(void*),
   "https://github.com/sol/v8/issues."
   );
 
+static_assert(sizeof(Local<ObjectTemplate>) == sizeof(void*),
+  "We treat Persistent<Context>"
+  "as a pointer, but your compiler thinks it has a different size.  You can "
+  "request support for your platform by opening a ticket at "
+  "https://github.com/sol/v8/issues."
+  );
+
 extern "C" {
 
 Handle<Value> argumentsGet(int i, const Arguments& args) {
   return args[i];
 }
 
-Persistent<Context> contextNew(const InvocationCallback jsPrint) {
+Local<ObjectTemplate> mkObjectTemplate() {
+  return ObjectTemplate::New();
+}
+
+void c_objectTemplateAddFunction(Handle<ObjectTemplate> t, const char* name, InvocationCallback f) {
   HandleScope scope;
-  Local<ObjectTemplate> global = ObjectTemplate::New();
-  global->Set(String::New("print"), FunctionTemplate::New(jsPrint));
+  t->Set(name, FunctionTemplate::New(f));
+}
+
+Persistent<Context> contextNew(Handle<ObjectTemplate> global) {
   return Context::New(NULL, global);
 }
 
