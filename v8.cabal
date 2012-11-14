@@ -27,7 +27,7 @@ library
     cbits/value.cpp
     cbits/context.cpp
 
-  build-depends:    base
+  build-depends:    base, filepath
   hs-source-dirs:   src
   exposed-modules:
     Foreign.JavaScript.V8

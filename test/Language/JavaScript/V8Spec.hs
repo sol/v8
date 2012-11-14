@@ -10,7 +10,7 @@ main = hspec spec
 
 spec :: Spec
 spec = do
-  describe "runScript" $ do
-    it "can run a scripts that uses require" $ do
-      capture_ (readFile "resources/trivial/program.js" >>= runScript "resources/trivial/")
-      `shouldReturn` "inc(1) = 2\n"
+  describe "run" $ do
+    it "can run a script that uses require" $ do
+      capture_ (readFile "resources/trivial/program.js" >>= run "resources/trivial/")
+        `shouldReturn` "inc(1) = 2\n"
