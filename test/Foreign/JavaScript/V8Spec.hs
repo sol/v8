@@ -3,7 +3,6 @@ module Foreign.JavaScript.V8Spec (main, spec) where
 import           Test.Hspec.Experimental
 import           System.IO.Silently
 
-import           Control.Monad
 import           Control.Applicative
 
 import           Foreign.JavaScript.V8
@@ -53,20 +52,18 @@ spec = do
 
   describe "contextAddFunction" $ do
     it "adds function to context" $ do
-      join . withHandleScope . withContext $ \c -> do
-        fin <- contextAddFunction c "concat" $ \args -> do
+      withHandleScope . withContext $ \c -> do
+        contextAddFunction c "concat" $ \args -> do
           a <- argumentsGet 0 args >>= toString
           b <- argumentsGet 1 args >>= toString
           mkString (a ++ b)
         (runScript "concat('foo', 'bar')" >>= toString) `shouldReturn` "foobar"
-        return fin
 
     it "works with unicode names" $ do
-      join . withHandleScope . withContext $ \c -> do
-        fin <- contextAddFunction c "foo\955bar" $ \_ -> do
+      withHandleScope . withContext $ \c -> do
+        contextAddFunction c "foo\955bar" $ \_ -> do
           mkString "foo"
         (runScript "foo\955bar()" >>= toString) `shouldReturn` "foo"
-        return fin
 
   describe "global built-ins" $ do
     describe "print" $ do

@@ -1,7 +1,6 @@
 module Foreign.JavaScript.V8.Context (
   Context (..)
 , contextNew
-, contextDispose
 , contextEnter
 , contextExit
 
@@ -22,7 +21,9 @@ import           Util
 import           Foreign.JavaScript.V8.Value
 import           Foreign.JavaScript.V8.Finalizer
 
-newtype Context = Context (Ptr ())
+data ContextToken
+data Context = Context (Ptr ContextToken) Finalizer
+type ContextPtr = Ptr ContextToken
 
 newtype Arguments = Arguments (Ptr ())
 
@@ -31,25 +32,36 @@ foreign import ccall "wrapper" mkInvocationCallback :: (Arguments -> IO Value) -
 
 foreign import ccall "argumentsGet" argumentsGet :: CInt -> Arguments -> IO Value
 
-
+-- |
+-- The context takes ownership of the passed `ObjectTemplate`, it is disposed
+-- when the context is disposed.  You must not call `dispose` on an
+-- `ObjectTemplate` that you have passed to `contextNew`!
 contextNew :: ObjectTemplate -> IO Context
-contextNew (ObjectTemplate ptr fin) = c_contextNew ptr
-foreign import ccall c_contextNew :: Ptr ObjectTemplateToken -> IO Context
+contextNew (ObjectTemplate t fin) = Context <$> c_contextNew t <*> pure fin
+foreign import ccall c_contextNew :: Ptr ObjectTemplateToken -> IO ContextPtr
 
-foreign import ccall contextDispose :: Context -> IO ()
+instance Disposable Context where
+  dispose (Context c fin) = contextDispose c >> finalize fin
 
-foreign import ccall contextEnter :: Context -> IO ()
-foreign import ccall contextExit :: Context -> IO ()
+foreign import ccall contextDispose :: ContextPtr -> IO ()
+
+contextEnter :: Context -> IO ()
+contextEnter (Context c _) = c_contextEnter c
+foreign import ccall c_contextEnter :: ContextPtr -> IO ()
+
+contextExit :: Context -> IO ()
+contextExit (Context c _) = c_contextExit c
+foreign import ccall c_contextExit :: ContextPtr -> IO ()
 
 -- |
 -- This returns a finalizer.  It should be called after the given context has
 -- been disposed to reclaim memory.
-contextAddFunction :: Context -> String -> (Arguments -> IO Value) -> IO (IO ())
-contextAddFunction context name f = do
+contextAddFunction :: Context -> String -> (Arguments -> IO Value) -> IO ()
+contextAddFunction (Context c fin) name f = do
   ptr <- mkInvocationCallback f
-  withCString name $ \name_ -> c_contextAddFunction context name_ ptr
-  return (freeHaskellFunPtr ptr)
-foreign import ccall c_contextAddFunction :: Context -> CString -> InvocationCallback -> IO ()
+  withCString name $ \name_ -> c_contextAddFunction c name_ ptr
+  finalizerAdd fin (freeHaskellFunPtr ptr)
+foreign import ccall c_contextAddFunction :: ContextPtr -> CString -> InvocationCallback -> IO ()
 
 data ObjectTemplateToken
 data ObjectTemplate = ObjectTemplate (Ptr ObjectTemplateToken) Finalizer
@@ -67,4 +79,4 @@ objectTemplateAddFunction (ObjectTemplate t fin) name f = do
 foreign import ccall c_objectTemplateAddFunction :: Ptr ObjectTemplateToken -> CString -> InvocationCallback -> IO ()
 
 instance Disposable ObjectTemplate where
-  dispose (ObjectTemplate _ fin) = dispose fin
+  dispose (ObjectTemplate _ fin) = finalize fin

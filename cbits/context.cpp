@@ -39,11 +39,11 @@ void contextDispose(Persistent<Context> context) {
   context.Dispose();
 }
 
-void contextEnter(Handle<Context> context) {
+void c_contextEnter(Handle<Context> context) {
   context->Enter();
 }
 
-void contextExit(Handle<Context> context) {
+void c_contextExit(Handle<Context> context) {
   context->Exit();
 }
 

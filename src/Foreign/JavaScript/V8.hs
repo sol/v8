@@ -5,7 +5,6 @@ module Foreign.JavaScript.V8 (
 
 , Context
 , contextNew
-, contextDispose
 , withContext
 , withContext_
 
@@ -40,11 +39,9 @@ withContext :: (Context -> IO a) -> IO a
 withContext action = do
   t <- mkObjectTemplate
   objectTemplateAddFunction t "print" jsPrint
-  r <- bracket (contextNew t) contextDispose $ \context -> do
-    bracket_ (contextEnter context) (contextExit context) $ do
-      action context
-  dispose t
-  return r
+  bracket (contextNew t) dispose $ \c -> do
+    bracket_ (contextEnter c) (contextExit c) $ do
+      action c
   where
     jsPrint :: Arguments -> IO Value
     jsPrint args = do

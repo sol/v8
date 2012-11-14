@@ -16,3 +16,8 @@ spec = do
       finalizerAdd fin $ putStrLn "foo"
       finalizerAdd fin $ putStrLn "bar"
       capture_ (finalize fin) `shouldReturn` "foo\nbar\n"
+
+    it "throws AlreadyDisposed if called twice" $ do
+      fin <- finalizerNew
+      finalize fin
+      finalize fin `shouldThrow` (== AlreadyDisposed)

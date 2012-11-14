@@ -11,17 +11,24 @@ main = hspec spec
 
 spec :: Spec
 spec = do
-  describe "contextNew" $ do
-    it "takes a template for the global object" $ do
-      withHandleScope $ do
-        t <- mkObjectTemplate
-        objectTemplateAddFunction t "reverse" jsReverse
-        objectTemplateAddFunction t "concat"  jsConcat
-        bracket (contextNew t) contextDispose $ \c -> do
-          bracket_ (contextEnter c) (contextExit c) $ do
-            (runScript "reverse('foo')" >>= toString) `shouldReturn` "oof"
-            (runScript "concat('foo', 'bar')" >>= toString) `shouldReturn` "foobar"
-        dispose t
+  describe "Context" $ do
+    describe "contextNew" $ do
+      it "takes a template for the global object" $ do
+        withHandleScope $ do
+          t <- mkObjectTemplate
+          objectTemplateAddFunction t "reverse" jsReverse
+          objectTemplateAddFunction t "concat"  jsConcat
+          bracket (contextNew t) dispose $ \c -> do
+            bracket_ (contextEnter c) (contextExit c) $ do
+              (runScript "reverse('foo')" >>= toString) `shouldReturn` "oof"
+              (runScript "concat('foo', 'bar')" >>= toString) `shouldReturn` "foobar"
+
+    describe "dispose" $ do
+      it "disposes the associated object template" $ do
+        withHandleScope $ do
+          t <- mkObjectTemplate
+          contextNew t >>= dispose
+          dispose t `shouldThrow` (== AlreadyDisposed)
   where
     jsReverse args = do
       s <- argumentsGet 0 args >>= toString
