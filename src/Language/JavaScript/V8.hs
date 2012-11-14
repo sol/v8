@@ -33,8 +33,9 @@ mkModuleContext loader = do
   objectTemplateAddFunction t "require" (jsRequire loader)
   contextNew t
 
-loadModule :: ModuleLoader -> String -> IO Value
-loadModule loader name = withHandleScope $ do
+jsRequire :: ModuleLoader -> Arguments -> IO Value
+jsRequire loader args = withHandleScope $ do
+  name <- argumentsGet 0 args >>= toString
   source <- loader name
   c <- mkModuleContext loader
   v <- withContextScope c $ do
@@ -43,11 +44,6 @@ loadModule loader name = withHandleScope $ do
     runScript "exports"
   dispose c
   return v
-
-jsRequire :: ModuleLoader -> Arguments -> IO Value
-jsRequire loader args = do
-  name <- argumentsGet 0 args >>= toString
-  loadModule loader name
 
 jsPrint :: Arguments -> IO Value
 jsPrint args = do
