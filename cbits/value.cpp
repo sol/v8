@@ -44,4 +44,9 @@ void c_withHandleScope(ActionCallback action) {
   HandleScope scope;
   action();
 }
+
+int c_numberOfHandles() {
+  return HandleScope::NumberOfHandles();
+}
+
 }

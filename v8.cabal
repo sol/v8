@@ -33,11 +33,11 @@ library
     Foreign.JavaScript.V8
     Language.JavaScript.V8
 
+    Foreign.JavaScript.V8.Value
+    Foreign.JavaScript.V8.Context
     Foreign.JavaScript.V8.Disposable
   other-modules:
     Util
-    Foreign.JavaScript.V8.Value
-    Foreign.JavaScript.V8.Context
 
 test-suite spec
   default-language: Haskell2010

@@ -1,6 +1,7 @@
 module Foreign.JavaScript.V8.Value (
   Value (..)
 , withHandleScope
+, numberOfHandles
 , mkUndefined
 , mkString
 , toString
@@ -44,6 +45,11 @@ withHandleScope action = do
   where
     liftE :: Either SomeException a -> IO a
     liftE = either throwIO return
+
+-- | Counts the number of allocated handles.
+numberOfHandles :: IO Int
+numberOfHandles = fromIntegral <$> c_numberOfHandles
+foreign import ccall c_numberOfHandles :: IO CInt
 
 type ActionCallback = FunPtr (IO ())
 foreign import ccall "wrapper" mkActionCallback :: IO () -> IO ActionCallback
