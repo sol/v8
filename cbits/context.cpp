@@ -32,6 +32,11 @@ void c_objectTemplateAddFunction(Handle<ObjectTemplate> t, const char* name, Inv
 }
 
 Persistent<Context> c_contextNew(Handle<ObjectTemplate> global) {
+  // Context::New seems to leak handles!  We have a test for this, so if you
+  // remove this line and all tests still pass, then the issue has probably
+  // been fixed upstream.
+  HandleScope scope;
+
   return Context::New(NULL, global);
 }
 

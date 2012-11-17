@@ -7,6 +7,7 @@ import           Data.String.Builder (build)
 import           Control.Exception (bracket)
 
 import           Foreign.JavaScript.V8
+import           Foreign.JavaScript.V8.Value (numberOfHandles)
 
 main :: IO ()
 main = hspec spec
@@ -24,6 +25,14 @@ spec = do
             withContextScope c $ do
               (runScript "reverse('foo')" >>= toString) `shouldReturn` "oof"
               (runScript "concat('foo', 'bar')" >>= toString) `shouldReturn` "foobar"
+
+      it "does not leak handles" $ do
+        withHandleScope $ do
+          t <- mkObjectTemplate
+          numberOfHandles `shouldReturn` 1
+          c <- contextNew t
+          numberOfHandles `shouldReturn` 1
+          dispose c
 
     describe "dispose" $ do
       it "disposes the associated object template" $ do
