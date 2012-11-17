@@ -53,9 +53,6 @@ contextExit :: Context -> IO ()
 contextExit (Context c _) = c_contextExit c
 foreign import ccall c_contextExit :: ContextPtr -> IO ()
 
--- |
--- This returns a finalizer.  It should be called after the given context has
--- been disposed to reclaim memory.
 contextAddFunction :: Context -> String -> (Arguments -> IO Value) -> IO ()
 contextAddFunction (Context c fin) name f = do
   ptr <- mkInvocationCallback f
