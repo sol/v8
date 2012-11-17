@@ -31,7 +31,19 @@ spec = do
         "require('sys').puts(23);"
       `shouldReturn` "23\n"
 
-fakeLoader :: FakeLoader -> ModuleLoader
+  describe "require" $ do
+    context "when used multiple times with the same argument" $ do
+      it "returns the same module instance" $ do
+        let loader = fakeLoader $ do
+              moduleSource "counter" $ do
+                "var i = 23;"
+                "exports.next = function() { return i++; };"
+        capture_ . run_ loader . build $ do
+          "print(require('counter').next());"
+          "print(require('counter').next());"
+        `shouldReturn` "23\n24\n"
+
+fakeLoader :: FakeLoader -> SourceLoader
 fakeLoader m name = maybe noSource return (M.lookup name m_)
   where
     m_ = execState m M.empty
