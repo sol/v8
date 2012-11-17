@@ -4,6 +4,7 @@ module Foreign.JavaScript.V8.ContextSpec (main, spec) where
 import           Test.Hspec
 import           Data.String.Builder (build)
 
+import           Control.Monad (replicateM_)
 import           Control.Exception (bracket)
 
 import           Foreign.JavaScript.V8
@@ -73,6 +74,22 @@ spec = do
           withContextScope c2 $ do
             (runScript "foo().bar" >>= toString) `shouldReturn` "23"
         dispose c1
+
+  describe "objectTemplateAddFunction" $ do
+    context "when the native function is called" $ do
+      it "does not leak handles" $ do
+        withHandleScope $ do
+          t <- mkObjectTemplate
+          objectTemplateAddFunction t "foo" $ \_ -> do
+            n <- numberOfHandles
+            replicateM_ 10 (runScript "new Object();")
+            numberOfHandles `shouldReturn` (n + 10)
+            mkUndefined
+
+          bracket (contextNew t) dispose $ \c -> withContextScope c $ do
+            numberOfHandles `shouldReturn` 1
+            _ <- runScript "foo()"
+            numberOfHandles `shouldReturn` 2
   where
     jsReverse args = do
       s <- argumentsGet 0 args >>= toString
